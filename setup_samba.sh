@@ -9,24 +9,29 @@ userid=1001
 share=/tank
 
 # setup samba
-yum install -y samba samba-client
+yum install -y samba #samba-client
 
 cat <<EOF>/etc/samba/smb.conf
 [global]
 workgroup = WORKGROUP
 server string = Samba Server %v
 #netbios name = centos
-security = user
-map to guest = bad user
-dns proxy = no
+security = User
+map to guest = Bad User
+encrypt passwords = yes
+loglevel = 2
 
-[mandos]
+[mandos2]
 path = $share
 valid users = @smbgrp
-browsable =yes
 writable = yes
-guest ok = no
+browsable =yes
+inherit owner = yes
+inherit permissions = yes
+inherit acls = yes
+guest ok = yes
 read only = no
+
 EOF
 
 systemctl enable smb nmb
