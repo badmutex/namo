@@ -31,7 +31,7 @@ EOF
 
 systemctl enable smb nmb
 systemctl start smb nmb
-smbpasswd -a $user
+smbpasswd -n -a $user
 
 # setup firewall
 firewall-cmd --permanent --zone=public --add-service=samba
