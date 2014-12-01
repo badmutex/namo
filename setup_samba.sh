@@ -9,7 +9,7 @@ userid=1001
 share=/tank
 
 # setup samba
-yum install -y samba #samba-client
+yum install -y samba samba-client
 
 cat <<EOF>/etc/samba/smb.conf
 [global]
