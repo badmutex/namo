@@ -10,7 +10,7 @@ chcon -Rt svirt_sandbox_file_t $share
 
 # setup firewall
 firewall-cmd --permanent --zone=public --add-service=samba
-systemctl reload firewalld.service
+systemctl restart firewalld.service
 
 # selinux should allow sharing
 chcon -t samba_share_t $share
