@@ -1,42 +1,12 @@
 #!/usr/bin/env bash
 
-grp=smbgrp
-grpid=1002
+set -e
 
-user=badi
-userid=1001
-
+user=mandos
 share=/tank
 
-# setup samba
-yum install -y samba samba-client
-
-cat <<EOF>/etc/samba/smb.conf
-[global]
-workgroup = WORKGROUP
-server string = Samba Server %v
-#netbios name = centos
-security = User
-map to guest = Bad User
-encrypt passwords = yes
-loglevel = 2
-
-[mandos2]
-path = $share
-valid users = @smbgrp
-writable = yes
-browsable =yes
-inherit owner = yes
-inherit permissions = yes
-inherit acls = yes
-guest ok = yes
-read only = no
-
-EOF
-
-systemctl enable smb nmb
-systemctl start smb nmb
-smbpasswd -n -a $user
+# let SELinux allow docker sharing of data
+chcon -Rt svirt_sandbox_file_t $share
 
 # setup firewall
 firewall-cmd --permanent --zone=public --add-service=samba
@@ -46,9 +16,56 @@ systemctl reload firewalld.service
 chcon -t samba_share_t $share
 
 # fix permissions
-chown -Rv $user:$grp $share
+chown -Rv $user:$user $share
 
-# done
-echo "Samba is now configured"
-echo "Run the following to setup the user:"
-echo "smbpasswd $user"
+# create docker image
+cat <<EOF>Dockerfile
+FROM phusion/baseimage
+
+RUN apt-get -yqq update && apt-get -yqq install samba samba-client
+
+VOLUME /etc/passwd
+VOLUME /etc/group
+VOLUME /share
+VOLUME /etc/samba
+
+ADD ./entry.sh /bin/entry.sh
+
+EXPOSE 139 445
+ENTRYPOINT ["/bin/entry.sh"]
+EOF
+
+cat <<EOF>entry.sh
+#!/bin/bash
+
+set -e
+
+nmbd
+smbd
+
+tail -f /var/log/samba/log.smbd
+EOF
+
+chmod +x entry.sh
+
+docker build -t badi/samba-server .
+
+
+# samba server service
+cat <<EOF>/etc/systemd/system/samba-server.service
+[Unit]
+Description=Samba server
+After=docker.service
+Requires=docker.service
+
+[Service]
+ExecStartPre=-/usr/bin/docker kill samba-server
+ExecStartPre=-/usr/bin/docker rm samba-server
+ExecStart=/usr/bin/env docker run --rm --privileged -p 139:139 -p 445:445 -v /etc/passwd:/etc/passwd:ro -v /etc/group:/etc/group:ro -v /tank/:/share -v $PWD/samba:/etc/samba --name samba-server badi/samba-server
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+systemctl enable samba-server.service
+systemctl start samba-server.service
