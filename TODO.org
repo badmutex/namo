@@ -1,0 +1,4 @@
+* TODO restart samba.target after boot
+
+  For some reason, samba is not fully started and requires a
+  `systemctl restart sambda.target` to appear on the network.
