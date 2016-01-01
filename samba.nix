@@ -1,3 +1,5 @@
+# -*- eval: (load-library "nix-mode"); mode: nix; -*-
+
 { config, lib, pkgs, ... }:
 
 {
