@@ -1,4 +1,4 @@
-* TODO refactor configuration.nix				      :nixos:
+* DONE refactor configuration.nix				      :nixos:
 * TODO enable ssh agent						      :nixos:
 * TODO enable weekly scrub				      :mandos:health:
 * TODO configure email forwarding				      :email:
