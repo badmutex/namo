@@ -30,7 +30,7 @@
   boot.loader.grub.device = "/dev/disk/by-path/pci-0000:00:14.0-usb-0:2:1.0-scsi-0:0:0:0";
 
   networking = {
-    hostId = "8425e349";
+    hostId = "33025074";
     hostName = "namo";
     usePredictableInterfaceNames = true;
     firewall = {
