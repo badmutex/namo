@@ -34,11 +34,11 @@
     hostName = "namo";
     usePredictableInterfaceNames = true;
     firewall = {
-      enable = true;
-      allowPing = true;
-      allowedTCPPorts = [
-        139 445 # samba
-      ];
+      enable = false;
+      # allowPing = true;
+      # allowedTCPPorts = [
+      #   139 445 # samba
+      # ];
     };
     networkmanager.enable = false;
     tcpcrypt.enable = true;
