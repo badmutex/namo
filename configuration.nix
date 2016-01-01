@@ -13,7 +13,7 @@
       ./samba.nix
     ];
 
-  boot.initrd.kernelModules = [ "zfs" ];
+  # boot.initrd.kernelModules = [ "zfs" ];
   boot.supportedFilesystems = [ "zfs" ];
   boot.zfs.extraPools = [ "mandos" ];
   boot.zfs.forceImportAll = false;
