@@ -1,5 +1,4 @@
 * DONE refactor configuration.nix				      :nixos:
-* TODO enable ssh agent						      :nixos:
 * TODO enable weekly scrub				      :mandos:health:
 * TODO configure email forwarding				      :email:
 * TODO enable nightly smartd heath checks	       :storage:health:email:
@@ -20,3 +19,44 @@
 * TODO add additional disks				     :mandos:storage:
 * TODO use [[https://github.com/AGWA/git-crypt][gitAndTools.git-crypt]] for this repo			       :repo:
   Make sure to investigate security repurcussions and alternatives.
+* TODO enable ssh agent						      :nixos:
+
+  This isn't entirely straightforward.  The first option is to use
+  [[http://www.funtoo.org/Keychain][keychain]]. Unfortunatly, this pull in something which has X11
+  dependencies.
+
+  The alternative is to manually manage =ssh-agent=.  This can be done
+  by defining the nixos option =programs.bash.loginShellInit=.
+  Another option is to create a systemd service file.
+
+  #+begin_src nix
+  programs.bash.loginShellInit = ''
+    ssh_env=$HOME/.ssh/environment
+    ssh_key=$HOME/.ssh/id_rsa
+
+    function start_agent {
+      ssh-agent -t 3600 | sed '/^echo/d' >$ssh_env
+      chmod 600 $ssh_env
+      source $ssh_env
+    }
+    test -r $ssh_key \
+       && eval $(ssh-agent -t 3600) \
+       && ssh-add $ssh_key
+  '';
+  #+end_src
+
+  #+begin_src nix
+  systemd.services.ssh-agent = {
+    wantedBy = [ "default.target" ];
+    after = [ "local-fs.target" ];
+    serviceConfig = {
+      Type = "forking";
+      Environment = "SSH_AUTH_SOCK=%t/ssh-agent.socket";
+      ExecStart = "${pkgs.openssh}/bin/ssh-agent -t 3600";
+      ExecStartPost = "${pkgs.systemd}/bin/systemctl --user set-environment SSH_AUTH_SOCK=$SSH_AUTH_SOCK";
+      ExecStop = "${pkgs.openssh}/bin/ssh-agent -k";
+    };
+  };
+  #+end_src
+
+  I'll need to come back to this task later.

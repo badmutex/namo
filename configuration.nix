@@ -11,7 +11,7 @@
       ./boot.nix
       ./networking.nix
       ./samba.nix
-      ./systemPackages.nix
+      ./programs.nix
       ./services.nix
       ./users.nix
     ];
