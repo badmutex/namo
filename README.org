@@ -14,3 +14,5 @@
   - [ ] OpenVPN running on public network interface
   - [ ] Selective firewalling on local and public interfaces
   - [ ] Torrent client operating on public interface
+  - [ ] Wake-on-LAN notification
+  - [ ] Low-power-mode when idling

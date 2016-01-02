@@ -62,3 +62,5 @@
   #+end_src
 
   I'll need to come back to this task later.
+* TODO investigate low-power-mode when no activity		:powersaving:
+* TODO investigate Wake-on-LAN					:powersaving:
