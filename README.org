@@ -1,0 +1,16 @@
+* Readme
+
+  This project deploys a NixOS-based Network-Attached-Storage unit.
+  Storage is managed with ZFS (assumed to be preconfigured).
+
+  Mandos provides:
+
+  - [ ] Auto NixOS upgrades
+  - [X] Periodic ZFS scrub
+  - [ ] Failed scrubs are emailed to the admin
+  - [ ] Nightly SMART disk health checks
+  - [ ] Failed SMART checks are emailed to the admin
+  - [X] Smb/Cifs servers over the local network interface
+  - [ ] OpenVPN running on public network interface
+  - [ ] Selective firewalling on local and public interfaces
+  - [ ] Torrent client operating on public interface
