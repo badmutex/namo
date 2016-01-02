@@ -22,4 +22,12 @@
     };
   };
 
+  systemd.timers."zfs-scrub-mandos" = {
+    timerConfig = {
+      Unit = "zfs-scrub@mandos.service";
+      OnCalendar = "Sun 23:00";
+      Persistent = "true";
+    };
+  };
+
 }
