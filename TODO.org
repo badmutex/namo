@@ -2,6 +2,7 @@
 * DONE update nixos						      :nixos:
 * DONE enable weekly scrub				      :mandos:health:
 * TODO configure email forwarding				      :email:
+* TODO email scrub failures				      :mandos:health:
 * TODO enable nightly smartd heath checks	       :storage:health:email:
 * TODO configure firewall on internal and public interfaces	   :firewall:
 * TODO install torrent client 					    :torrent:
