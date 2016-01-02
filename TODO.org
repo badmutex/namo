@@ -1,6 +1,6 @@
 * DONE refactor configuration.nix				      :nixos:
 * DONE update nixos						      :nixos:
-* TODO enable weekly scrub				      :mandos:health:
+* DONE enable weekly scrub				      :mandos:health:
 * TODO configure email forwarding				      :email:
 * TODO enable nightly smartd heath checks	       :storage:health:email:
 * TODO configure firewall on internal and public interfaces	   :firewall:
