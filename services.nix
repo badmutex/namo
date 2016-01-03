@@ -24,6 +24,7 @@
 
   systemd.timers."zfs-scrub-mandos" = {
     wantedBy = [ "multi-user.target" ];
+    after = [ "local-fs.target" ];
     timerConfig = {
       Unit = "zfs-scrub@mandos.service";
       OnCalendar = "Sun 23:00";
