@@ -9,6 +9,7 @@
     emacs24-nox
     nix-repl
     git
+    smartmontools
   ];
 
 }
