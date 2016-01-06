@@ -5,6 +5,7 @@
 {
 
   environment.systemPackages = with pkgs; [
+    file
     wget
     emacs24-nox
     nix-repl
