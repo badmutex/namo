@@ -10,9 +10,9 @@
     permitRootLogin = "no";
   };
 
-  services.smartd = {
-    enable = true;
-  };
+  imports = [
+    ./services/smart.nix
+  ];
 
   systemd.services."zfs-scrub@" = {
     description = "Scrub zfs pool %i";
