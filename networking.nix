@@ -8,6 +8,7 @@
     hostId = "33025074";
     hostName = "namo";
     usePredictableInterfaceNames = true;
+    domain = "netbadi.org";
 
     firewall = {
       enable = false;
