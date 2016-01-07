@@ -6,13 +6,231 @@
 * DONE enable smartd heath checks 		       :storage:health:email:
 * TODO configure firewall on internal and public interfaces	   :firewall:
 * TODO install torrent client 					    :torrent:
-* TODO restart samba.target after boot				      :samba:
+* DONE restart samba.target after boot				      :samba:
 
-  For some reason, samba is not fully started and requires a
-  =systemctl restart sambda.target= to appear on the network.
+** TLDR
 
-  Use of =systemctl list-dependencies --all sambda.target= may prove
-  usefull.
+   services.samba with =bind interfaces only= and =interfaces = lo
+   enp5s0= in =extraConfig= requires a manual =systemctl restart
+   samba.target= for the shares to appear on the network. My
+   workaround is to add a timer that restarts =samba.target= several
+   seconds after boot.
+
+** Configuration
+   I have a system (=namo=) with two network interfaces with
+   DHCP-assigned addresses:
+   - =enp5s0= -> =10.0.0.2=
+   - =enp6s0= -> =10.0.0.3=
+     
+
+   I wish to share only over =enp5s0= so I create in
+   =/etc/nixos/configuration.nix=
+
+   #+begin_src nix
+   services.samba = {
+     enable = true;
+     extraConfig = ''
+       bind interfaces only = yes
+       interfaces = lo enp5s0
+       [...]
+     [...]
+   }
+   #+end_src
+
+** Symptoms
+
+   Upon reboot everything *seems* ok as all relevant services are
+   **active**:
+
+   #+begin_example
+   [root@namo:~]# systemctl status samba-{{s,n}mb,winbind}d.service
+   ● samba-smbd.service - Samba Service Daemon smbd
+      Loaded: loaded (/nix/store/vs4gpc0ms2wjvk42lz213k910b37xz38-unit-samba-smbd.service/samba-smbd.service)
+      Active: active (running) since Wed 2016-01-06 21:39:20 EST; 45s ago
+    Main PID: 1647 (smbd)
+      CGroup: /system.slice/samba-smbd.service
+              ├─1647 /nix/store/02jf5w8cxdram9p1dfd9hrs70pv058y8-samba-4.2.3/sbin/smbd -F
+              └─1808 /nix/store/02jf5w8cxdram9p1dfd9hrs70pv058y8-samba-4.2.3/sbin/smbd -F
+   
+   Jan 06 21:39:20 namo systemd[1]: Starting Samba Service Daemon smbd...
+   Jan 06 21:39:20 namo systemd[1]: Started Samba Service Daemon smbd.
+   Jan 06 21:39:22 namo smbd[1647]: [2016/01/06 21:39:22.021329,  0] ../lib/util/become_daemon.c:124(daemon_ready)
+   Jan 06 21:39:22 namo smbd[1647]: STATUS=daemon 'smbd' finished starting up and ready to serve connections
+   Jan 06 21:39:22 namo smbd[1808]: [2016/01/06 21:39:22.025422,  0] ../source3/printing/print_standard.c:69(std_pcap_cache_reload)
+   Jan 06 21:39:22 namo smbd[1808]: Unable to open printcap file /etc/printcap for read!
+   
+   ● samba-nmbd.service - Samba Service Daemon nmbd
+      Loaded: loaded (/nix/store/jrzc4lllk0mwg6fgsr5rdcy6d3ylj8mx-unit-samba-nmbd.service/samba-nmbd.service)
+      Active: active (running) since Wed 2016-01-06 21:39:20 EST; 45s ago
+    Main PID: 1645 (nmbd)
+      CGroup: /system.slice/samba-nmbd.service
+              └─1645 /nix/store/02jf5w8cxdram9p1dfd9hrs70pv058y8-samba-4.2.3/sbin/nmbd -F
+   
+   Jan 06 21:39:21 namo nmbd[1645]: [2016/01/06 21:39:21.688342,  0] ../lib/util/become_daemon.c:135(daemon_status)
+   Jan 06 21:39:21 namo nmbd[1645]: STATUS=daemon 'nmbd' : No local IPv4 non-loopback interfaces available, waiting for interface ...NOTE: NetBIOS name resolution is not supported for Internet Protocol Version 6 (IPv6).
+   Jan 06 21:39:31 namo nmbd[1645]: [2016/01/06 21:39:31.689257,  0] ../lib/util/become_daemon.c:124(daemon_ready)
+   Jan 06 21:39:31 namo nmbd[1645]: STATUS=daemon 'nmbd' finished starting up and ready to serve connections
+   Jan 06 21:39:54 namo nmbd[1645]: [2016/01/06 21:39:54.714762,  0] ../source3/nmbd/nmbd_become_lmb.c:397(become_local_master_stage2)
+   Jan 06 21:39:55 namo nmbd[1645]: *****
+   Jan 06 21:39:55 namo nmbd[1645]: 
+   Jan 06 21:39:55 namo nmbd[1645]: Samba name server NAMO is now a local master browser for workgroup WORKGROUP on subnet 10.0.0.2
+   Jan 06 21:39:55 namo nmbd[1645]: 
+   Jan 06 21:39:55 namo nmbd[1645]: *****
+   
+   ● samba-winbindd.service - Samba Service Daemon winbindd
+      Loaded: loaded (/nix/store/wbxnzvilyjypmhp4zwf8s27hirg6ny5z-unit-samba-winbindd.service/samba-winbindd.service)
+      Active: active (running) since Wed 2016-01-06 21:39:20 EST; 45s ago
+    Main PID: 1646 (winbindd)
+      CGroup: /system.slice/samba-winbindd.service
+              ├─1646 /nix/store/02jf5w8cxdram9p1dfd9hrs70pv058y8-samba-4.2.3/sbin/winbindd -F
+              └─1809 /nix/store/02jf5w8cxdram9p1dfd9hrs70pv058y8-samba-4.2.3/sbin/winbindd -F
+   
+   Jan 06 21:39:20 namo systemd[1]: Starting Samba Service Daemon winbindd...
+   Jan 06 21:39:20 namo systemd[1]: Started Samba Service Daemon winbindd.
+   Jan 06 21:39:21 namo winbindd[1646]: [2016/01/06 21:39:21.701452,  0] ../source3/winbindd/winbindd_cache.c:3235(initialize_winbindd_cache)
+   Jan 06 21:39:21 namo winbindd[1646]: initialize_winbindd_cache: clearing cache and re-creating with version number 2
+   Jan 06 21:39:22 namo winbindd[1646]: [2016/01/06 21:39:22.047764,  0] ../lib/util/become_daemon.c:124(daemon_ready)
+   Jan 06 21:39:22 namo winbindd[1646]: STATUS=daemon 'winbindd' finished starting up and ready to serve connections
+   #+end_example
+
+   but in reality is *not*:
+   - nmap (from =fangorn=, another host on the network) shows the absence of samba services
+   - netstat (on =namo=, the samba server) does not show =smbd= binding to =10.0.0.2=
+
+   #+begin_example
+   badi@fangorn ~ nmap 10.0.0.{2,3}                                                                                                                                                                                                                  !8400
+
+   Starting Nmap 6.49BETA4 ( https://nmap.org ) at 2016-01-06 21:41 EST
+   Nmap scan report for 10.0.0.2
+   Host is up (0.00030s latency).
+   Not shown: 999 closed ports
+   PORT   STATE SERVICE
+   22/tcp open  ssh
+
+   Nmap scan report for 10.0.0.3
+   Host is up (0.00032s latency).
+   Not shown: 999 closed ports
+   PORT   STATE SERVICE
+   22/tcp open  ssh
+
+   Nmap done: 2 IP addresses (2 hosts up) scanned in 0.13 seconds
+   #+end_example
+
+   #+begin_example
+   [root@namo:~]# netstat -tpan
+   Active Internet connections (servers and established)
+   Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+   tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1790/sshd           
+   tcp        0      0 127.0.0.1:445           0.0.0.0:*               LISTEN      1647/smbd           
+   tcp        0      0 127.0.0.1:139           0.0.0.0:*               LISTEN      1647/smbd           
+   tcp        0    196 10.0.0.2:22             10.0.0.106:57697        ESTABLISHED 1944/sshd: badi [pr 
+   tcp6       0      0 :::22                   :::*                    LISTEN      1790/sshd           
+   tcp6       0      0 ::1:445                 :::*                    LISTEN      1647/smbd           
+   tcp6       0      0 ::1:139                 :::*                    LISTEN      1647/smbd           
+   #+end_example
+
+** Workaround
+
+   However, if I manually execute =systemctl restart samba.target=,
+   the services appear in the desired state and =fangorn= is able to
+   mount and browse the shares:
+
+   #+begin_example
+   badi@fangorn ~ nmap 10.0.0.{2,3}
+
+   Starting Nmap 6.49BETA4 ( https://nmap.org ) at 2016-01-06 21:51 EST
+   Nmap scan report for 10.0.0.2
+   Host is up (0.00015s latency).
+   Not shown: 997 closed ports
+   PORT    STATE SERVICE
+   22/tcp  open  ssh
+   139/tcp open  netbios-ssn
+   445/tcp open  microsoft-ds
+
+   Nmap scan report for 10.0.0.3
+   Host is up (0.00015s latency).
+   Not shown: 999 closed ports
+   PORT   STATE SERVICE
+   22/tcp open  ssh
+
+   Nmap done: 2 IP addresses (2 hosts up) scanned in 0.12 seconds
+   #+end_example
+
+   #+begin_example
+   [root@namo:~]# netstat -tpan
+   Active Internet connections (servers and established)
+   Proto Recv-Q Send-Q Local Address           Foreign Address         State       PID/Program name    
+   tcp        0      0 0.0.0.0:22              0.0.0.0:*               LISTEN      1790/sshd           
+   tcp        0      0 127.0.0.1:445           0.0.0.0:*               LISTEN      2001/smbd           
+   tcp        0      0 10.0.0.2:445            0.0.0.0:*               LISTEN      2001/smbd           
+   tcp        0      0 127.0.0.1:139           0.0.0.0:*               LISTEN      2001/smbd           
+   tcp        0      0 10.0.0.2:139            0.0.0.0:*               LISTEN      2001/smbd           
+   tcp        0    196 10.0.0.2:22             10.0.0.106:57697        ESTABLISHED 1944/sshd: badi [pr 
+   tcp6       0      0 :::22                   :::*                    LISTEN      1790/sshd           
+   tcp6       0      0 ::1:445                 :::*                    LISTEN      2001/smbd           
+   tcp6       0      0 ::1:139                 :::*                    LISTEN      2001/smbd           
+   #+end_example
+
+   This has been automated in the form of a systemd timer and service
+   pair:
+   #+begin_src nix
+   systemd.services.samba-restart = {
+     after = ["network-online.target"];
+     serviceConfig = with pkgs; {
+       Type = "oneshot";
+       ExecStart = "${systemd}/bin/systemctl restart samba.target";
+     };
+   };
+  
+   systemd.timers.samba-start = {
+     wantedBy = [ "multi-user.target" ];
+     after = [ "samba.target" "timer-sync.target" ];
+     timerConfig = {
+       Unit = "samba-restart.service";
+       OnBootSec = "60";
+     };
+   };
+   #+end_src
+
+
+** The Problem
+
+   As far as I can tell, =smbd= is attempting to bind to Going through
+   =journalctl -b= it seems that =enp5s0= is down when the samba
+   services are started:
+
+   #+begin_example
+   [root@namo:~]# journalctl -b
+   [...]
+   Jan 06 21:39:21 namo dhcpcd[1806]: enp5s0: waiting for carrier
+   Jan 06 21:39:21 namo kernel: r8169 0000:05:00.0 enp5s0: link down
+   Jan 06 21:39:21 namo kernel: IPv6: ADDRCONF(NETDEV_UP): enp5s0: link is not ready
+   [...]
+   Jan 06 21:39:22 namo kernel: r8169 0000:05:00.0 enp5s0: link down
+   Jan 06 21:39:22 namo kernel: r8169 0000:06:00.0 enp6s0: link down
+   Jan 06 21:39:22 namo smbd[1647]: [2016/01/06 21:39:22.021329,  0] ../lib/util/become_daemon.c:124(daemon_ready)
+   Jan 06 21:39:22 namo smbd[1647]: STATUS=daemon 'smbd' finished starting up and ready to serve connections
+   Jan 06 21:39:22 namo smbd[1808]: [2016/01/06 21:39:22.025422,  0] ../source3/printing/print_standard.c:69(std_pcap_cache_reload)
+   Jan 06 21:39:22 namo smbd[1808]: Unable to open printcap file /etc/printcap for read!
+   Jan 06 21:39:22 namo winbindd[1646]: [2016/01/06 21:39:22.047764,  0] ../lib/util/become_daemon.c:124(daemon_ready)
+   Jan 06 21:39:22 namo winbindd[1646]: STATUS=daemon 'winbindd' finished starting up and ready to serve connections
+   [...]
+   #+end_example
+
+   Based on the [[https://wiki.freedesktop.org/www/Software/systemd/NetworkTarget][Systemd NetworkTarget documentation]] I =nixos-rebuild=
+   with a modified version of =services.samba= =samba.target= unit to
+   be =after [ "samba-setup.service" "network-online.target" ]= and
+   =wants = [ "network-online.target" ]=. This did not solve the
+   issue.
+
+** Related
+
+   [[https://unix.stackexchange.com/questions/222056/samba-only-works-after-manual-restart][Same issue on Stack Exchange]]
+   [[http://archlinuxarm.org/forum/viewtopic.php?f%3D58&t%3D6378][Similar issue on Arch Linux]]
+   [[https://bugs.debian.org/cgi-bin/bugreport.cgi?bug%3D698056][Same issue on Debian (bug 698056)]]
+   [[http://lists.opensuse.org/opensuse-bugs/2014-09/msg00416.html][Same issue on openSUSE]]
+   [[https://bugzilla.redhat.com/show_bug.cgi?id%3D744399][Same issue on Fedora]]
+   [[http://www.freedesktop.org/software/systemd/man/systemd.timer.html][man systemd.timer]]
 
 * TODO zpool upgrade						     :mandos:
 * TODO set property ashift=12					     :mandos:
