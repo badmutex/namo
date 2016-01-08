@@ -6,6 +6,39 @@
 * DONE enable smartd heath checks 		       :storage:health:email:
 * TODO configure firewall on internal and public interfaces	   :firewall:
 * TODO install torrent client 					    :torrent:
+
+  Main idea: create a container bound to the external interface and
+  run OpenVPN before the client.
+
+** NixOS Containers
+   Using NixOS containers does not currently work: By default: all
+   network interfaces are added to the container, and when the
+   interface is added (=enp6s0=), it is unable to connect to the
+   network.
+
+   #+BEGIN_SRC nix
+     containers.vpn = {
+       interfaces = [ "enp6s0" ];
+       config = {config, pkgs, ...}: { };
+     };
+   #+END_SRC
+
+   I got nowhere in my attempts using NAT or bridges either.
+
+   Some relevant links:
+   - [[https://github.com/NixOS/nixpkgs/pull/6208][Issue: IPv6 containers and NAT]]
+   - [[https://github.com/NixOS/nixpkgs/issues/5857][Issue: Add support for bridged networks in nixos-container]]
+
+** Docker
+
+   Considering the issues encountered with NixOS containers, it looks
+   like Docker may be a feasible approach.
+
+   Some initial searching:
+   - [[https://github.com/dperson/openvpn-client][dperson/openvpn-client]]
+   - [[https://stackoverflow.com/questions/21079555/transmission-daemon-inside-docker-container-with-openvpn-privateinternetaccess-c][StackOverflow of a very similar use-case]]
+   - [[https://github.com/firecat53/dockerfiles/tree/master/transmission][Transmission + OpenVPN + Docker]]
+
 * DONE restart samba.target after boot				      :samba:
 
 ** TLDR

@@ -14,6 +14,8 @@
       ./programs.nix
       ./services.nix
       ./users.nix
+
+      # ./containers.nix
     ];
 
   # Select internationalisation properties.
