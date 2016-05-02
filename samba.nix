@@ -28,7 +28,7 @@
       guest account = nobody
       # map to guest = bad user
       bind interfaces only = yes
-      interfaces = enp5s0 127.0.0.1
+      interfaces = eno1 127.0.0.1
       encrypt passwords = yes
       printcap name = /dev/null
       load printers = no

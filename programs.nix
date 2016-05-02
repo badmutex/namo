@@ -11,6 +11,10 @@
     nix-repl
     git
     smartmontools
+    hdparm
+    sdparm
+    lsscsi
+    pciutils
   ];
 
 }

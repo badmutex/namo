@@ -22,6 +22,8 @@
   boot.loader.grub.enable = true;
   boot.loader.grub.version = 2;
   boot.loader.grub.zfsSupport = true;
-  boot.loader.grub.device = "/dev/disk/by-path/pci-0000:00:14.0-usb-0:2:1.0-scsi-0:0:0:0";
+  boot.loader.grub.device = "/dev/disk/by-id/usb-CENTON_CENTON_USB_AA00000000003081-0:0";
 
+  boot.kernel.sysctl."vm.dirty_ratio" = 10;
+  boot.kernel.sysctl."vm.diry_background_ratio" = 5;
 }

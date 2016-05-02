@@ -18,6 +18,9 @@
       # ./containers.nix
     ];
 
+  hardware.cpu.intel.updateMicrocode = true;
+  boot.kernelParams = [ "libata.force=3" ];
+
   # Select internationalisation properties.
   i18n = {
     consoleFont = "Lat2-Terminus16";
@@ -28,6 +31,6 @@
   time.timeZone = "US/Eastern";
 
   # The NixOS release to be compatible with for stateful data such as databases.
-  system.stateVersion = "15.09";
+  system.stateVersion = "16.03";
 
 }
