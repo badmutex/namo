@@ -7,6 +7,7 @@
   environment.systemPackages = with pkgs; [
     file
     wget
+    aria
     emacs24-nox
     nix-repl
     git
