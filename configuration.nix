@@ -19,7 +19,6 @@
     ];
 
   hardware.cpu.intel.updateMicrocode = true;
-  boot.kernelParams = [ "libata.force=3" ];
 
   # Select internationalisation properties.
   i18n = {
