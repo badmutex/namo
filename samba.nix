@@ -38,23 +38,6 @@
     '';
   };
 
-  # for some reason samba is not really active on initial boot.
-  # this adds a timer to start samba again after a few seconds.
-  systemd.services.samba-restart = {
-    after = ["network-online.target"];
-    serviceConfig = with pkgs; {
-      Type = "oneshot";
-      ExecStart = "${systemd}/bin/systemctl restart samba.target";
-    };
-  };
-
-  systemd.timers.samba-start = {
-    wantedBy = [ "multi-user.target" ];
-    after = [ "samba.target" "timer-sync.target" ];
-    timerConfig = {
-      Unit = "samba-restart.service";
-      OnBootSec = "60";
-    };
-  };
+  systemd.services.samba-smbd.after = [ "zfs-mount.service" ];
 
 }
