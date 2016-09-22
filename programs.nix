@@ -17,6 +17,10 @@
     sdparm
     lsscsi
     pciutils
+    tmux
+    gptfdisk
+    unzip
+    unrar
   ];
 
 }
