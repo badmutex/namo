@@ -13,6 +13,7 @@
   imports = [
     ./services/smart.nix
     ./services/pia.nix
+    ./services/syncthing.nix
   ];
 
   systemd.services."zfs-scrub@" = {
