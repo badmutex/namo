@@ -32,7 +32,7 @@
     after = [ "local-fs.target" ];
     timerConfig = {
       Unit = "zfs-scrub@mandos.service";
-      OnCalendar = "Sun 23:00";
+      OnCalendar = "Mon,Wed,Fri";
       Persistent = "true";
     };
   };
